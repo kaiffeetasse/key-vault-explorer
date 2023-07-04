@@ -1,5 +1,15 @@
 from azure.keyvault.secrets import SecretClient
 from azure.identity import AzureCliCredential
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+proxy = os.getenv('PROXY')
+
+os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = proxy
+os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = proxy
+os.environ['NO_PROXY'] = os.environ['no_proxy'] = '127.0.0.1,localhost,.local'
 
 
 def get_secrets(key_vault_name):
