@@ -1,10 +1,11 @@
+import logging
 import tkinter as tk
-from tkinter import BOTH, RIGHT, END, BOTTOM
+from tkinter import BOTH, RIGHT, END, LEFT
+import pyperclip
 from PIL import Image, ImageTk
+
 import key_vault_api
 from entry_with_placeholder import EntryWithPlaceholder
-import pyperclip
-import logging
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -31,13 +32,13 @@ listbox_added = False
 
 
 def add_listbox():
-    listbox.pack(side=BOTTOM, fill=BOTH)
+    listbox.pack(side=LEFT, fill=BOTH, expand=True)
     scrollbar = tk.Scrollbar(window)
     scrollbar.pack(side=RIGHT, fill=BOTH)
 
     listbox.config(yscrollcommand=scrollbar.set)
 
-    listbox.config(width=0, height=0)
+    listbox.config(width=0)
 
     scrollbar.config(command=listbox.yview)
 
@@ -71,6 +72,11 @@ def set_listbox_items(items):
 
     listbox.config(width=0)
 
+    # make the listbox height max. 20 items
+    if len(items) < 20:
+        listbox.config(height=len(items))
+    else:
+        listbox.config(height=20)
 
 def callback(*args):
     key_vault_name = variable.get()
