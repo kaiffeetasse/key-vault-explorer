@@ -78,7 +78,8 @@ def set_listbox_items(items):
     else:
         listbox.config(height=20)
 
-def callback(*args):
+
+def key_vault_select_callback(*args):
     key_vault_name = variable.get()
 
     secrets = key_vault_api.get_secrets(key_vault_name)
@@ -97,7 +98,7 @@ variable = tk.StringVar(window)
 def add_dropdown(frame):
     variable.set("select key vault")
 
-    variable.trace("w", callback)
+    variable.trace("w", key_vault_select_callback)
 
     key_vaults = key_vault_api.get_all_key_vaults()
 
