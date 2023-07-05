@@ -38,8 +38,6 @@ def add_listbox():
 
     listbox.config(yscrollcommand=scrollbar.set)
 
-    listbox.config(width=0)
-
     scrollbar.config(command=listbox.yview)
 
     listbox.bind('<Double-Button>', listbox_double_click)
