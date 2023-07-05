@@ -4,6 +4,15 @@ from PIL import Image, ImageTk
 import key_vault_api
 from entry_with_placeholder import EntryWithPlaceholder
 import pyperclip
+import logging
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+
+logging.getLogger('azure.core.pipeline.policies.http_logging_policy').setLevel(logging.WARNING)
+
+logger = logging.getLogger(__name__)
 
 window = tk.Tk()
 
@@ -46,6 +55,8 @@ def get_secret_value(entry):
 
 def listbox_double_click(event):
     entry = listbox.get(listbox.curselection())
+
+    logger.info("Copying secret " + entry)
 
     secret_value = get_secret_value(entry)
 

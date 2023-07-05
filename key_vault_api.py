@@ -2,13 +2,20 @@ from azure.keyvault.secrets import SecretClient
 from azure.identity import AzureCliCredential
 import os
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 proxy = os.getenv('PROXY')
 
 if proxy:
-    print("Using proxy: " + proxy)
+    logger.info("Using proxy: " + proxy)
 
     os.environ['HTTP_PROXY'] = os.environ['http_proxy'] = proxy
     os.environ['HTTPS_PROXY'] = os.environ['https_proxy'] = proxy
@@ -16,7 +23,7 @@ if proxy:
 
 
 def get_secrets(key_vault_name):
-    print("Getting secrets from KeyVault " + key_vault_name)
+    logger.info("Getting secrets from KeyVault " + key_vault_name)
 
     key_vault_url = f"https://{key_vault_name}.vault.azure.net"
 
@@ -32,12 +39,15 @@ def get_secrets(key_vault_name):
 
         secrets.append({"name": secret_name, "value": secret_value})
 
-    print("Found " + str(len(secrets)) + " secrets in KeyVault " + key_vault_name)
+    logger.info("Found " + str(len(secrets)) + " secrets in KeyVault " + key_vault_name)
 
     return secrets
 
 
 def get_all_key_vaults():
+
+    logger.info("Loading all key vaults")
+
     from azure.mgmt.resource import ResourceManagementClient
     credential = AzureCliCredential()
 
@@ -64,7 +74,7 @@ def get_all_key_vaults():
     # remove all key vaults containing "prod" in name from the list
     key_vaults = [key_vault for key_vault in key_vaults if "prod" not in key_vault.name]
 
-    print("Found " + str(len(key_vaults)) + " key vaults")
+    logger.info("Found " + str(len(key_vaults)) + " key vaults")
 
     return [key_vault.name for key_vault in key_vaults]
 
