@@ -89,6 +89,9 @@ def key_vault_select_callback(*args):
 
     set_listbox_items(secrets)
 
+    # clear the filter textbox
+    entry.delete(0, END)
+
 
 variable = tk.StringVar(window)
 
@@ -121,7 +124,11 @@ def filter_listbox(entry):
         listbox.insert(END, filtered_secret['name'])
 
 
+entry = None
+
+
 def add_filter_textbox(frame):
+    global entry
     entry = EntryWithPlaceholder(window, "filter secrets")
     entry.pack(in_=frame, side=tk.LEFT)
 
