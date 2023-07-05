@@ -3,6 +3,7 @@ from azure.identity import AzureCliCredential
 import os
 from dotenv import load_dotenv
 import logging
+import test
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 proxy = os.getenv('PROXY')
+test_mode = os.getenv('TEST') == 'True'
 
 if proxy:
     logger.info("Using proxy: " + proxy)
@@ -24,6 +26,9 @@ if proxy:
 
 def get_secrets(key_vault_name):
     logger.info("Getting secrets from KeyVault " + key_vault_name)
+
+    if test_mode:
+        return test.get_secrets()
 
     key_vault_url = f"https://{key_vault_name}.vault.azure.net"
 
@@ -45,8 +50,10 @@ def get_secrets(key_vault_name):
 
 
 def get_all_key_vaults():
-
     logger.info("Loading all key vaults")
+
+    if test_mode:
+        return test.get_all_key_vaults()
 
     from azure.mgmt.resource import ResourceManagementClient
     credential = AzureCliCredential()
