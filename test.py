@@ -5,9 +5,9 @@ def get_secrets():
         secret_name = "secret" + str(i + 1)
         secret_value = "value" + str(i + 1)
 
-        secrets.append({"name": secret_name, "value": secret_value})
+        secrets.append(secret_name)
 
-    secrets.append({"name": "a_secret_with_a_very_loooooooooooooooooooooooooooooooooooooooong_name", "value": "value"})
+    secrets.append("a_secret_with_a_very_loooooooooooooooooooooooooooooooooooooooong_name")
 
     return secrets
 
@@ -21,3 +21,7 @@ def get_all_key_vaults():
         key_vaults.append(key_vault_name)
 
     return key_vaults
+
+
+def get_secret_value():
+    return "value"

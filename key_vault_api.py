@@ -40,13 +40,31 @@ def get_secrets(key_vault_name):
     secrets = []
     for secret_property in secret_properties:
         secret_name = secret_property.name
-        secret_value = client.get_secret(secret_name).value
+        # secret_value = client.get_secret(secret_name).value
 
-        secrets.append({"name": secret_name, "value": secret_value})
+        secrets.append(secret_name)
 
     logger.info("Found " + str(len(secrets)) + " secrets in KeyVault " + key_vault_name)
 
     return secrets
+
+
+def get_secret_value(key_vault_name, secret_name):
+    logger.info("Getting secret " + secret_name + " from KeyVault " + key_vault_name)
+
+    if test_mode:
+        return test.get_secret_value()
+
+    key_vault_url = f"https://{key_vault_name}.vault.azure.net"
+
+    credential = AzureCliCredential()
+    client = SecretClient(vault_url=key_vault_url, credential=credential)
+
+    secret_value = client.get_secret(secret_name).value
+
+    logger.info("Found secret " + secret_name + " in KeyVault " + key_vault_name)
+
+    return secret_value
 
 
 def get_all_key_vaults():

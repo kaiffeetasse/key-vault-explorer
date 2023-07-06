@@ -46,7 +46,8 @@ def export_secrets():
     # export secrets to file
     with open(filename, 'w') as outfile:
         for secret in original_secrets:
-            outfile.write(secret['name'] + "," + secret['value'].replace("\n", "") + "\n")
+            secret_value = key_vault_api.get_secret_value(current_key_vault_name, secret)
+            outfile.write(secret + "," + secret_value.replace("\n", "") + "\n")
 
 
 def add_listbox():
@@ -69,18 +70,12 @@ def add_listbox():
     listbox_added = True
 
 
-def get_secret_value(entry):
-    for secret in original_secrets:
-        if secret['name'] == entry:
-            return secret['value']
-
-
 def listbox_double_click(event):
     entry = listbox.get(listbox.curselection())
 
     logger.info("Copying secret " + entry)
 
-    secret_value = get_secret_value(entry)
+    secret_value = key_vault_api.get_secret_value(entry, current_key_vault_name)
 
     pyperclip.copy(secret_value)
 
@@ -89,7 +84,7 @@ def set_listbox_items(items):
     listbox.delete(0, END)
 
     for item in items:
-        listbox.insert(END, item['name'])
+        listbox.insert(END, item)
 
     listbox.config(width=0)
 
@@ -143,11 +138,11 @@ def filter_listbox(entry):
     global original_secrets
 
     # filter the secrets
-    filtered_secrets = list(filter(lambda secret: search_query in secret['name'], original_secrets))
+    filtered_secrets = list(filter(lambda secret: search_query in secret, original_secrets))
 
     # add the filtered secrets to the listbox
     for filtered_secret in filtered_secrets:
-        listbox.insert(END, filtered_secret['name'])
+        listbox.insert(END, filtered_secret)
 
 
 entry = EntryWithPlaceholder(window, "filter secrets")
