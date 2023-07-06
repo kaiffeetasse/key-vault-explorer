@@ -7,6 +7,8 @@ def get_secrets():
 
         secrets.append({"name": secret_name, "value": secret_value})
 
+    secrets.append({"name": "a_secret_with_a_very_loooooooooooooooooooooooooooooooooooooooong_name", "value": "value"})
+
     return secrets
 
 
