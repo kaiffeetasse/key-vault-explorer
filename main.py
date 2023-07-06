@@ -181,4 +181,11 @@ if __name__ == '__main__':
 
     menu_bar_frame.pack(side=tk.TOP, fill=BOTH)
 
+    # add cmd+f listener
+    # mac
+    window.bind('<Command-f>', lambda event: entry.focus_set())
+
+    # windows
+    window.bind('<Control-f>', lambda event: entry.focus_set())
+
     window.mainloop()
