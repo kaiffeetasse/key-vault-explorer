@@ -150,7 +150,7 @@ def filter_listbox(entry):
         listbox.insert(END, filtered_secret['name'])
 
 
-entry = None
+entry = EntryWithPlaceholder(window, "filter secrets")
 
 
 def add_filter_textbox(frame):
@@ -160,6 +160,18 @@ def add_filter_textbox(frame):
 
     # add callback
     entry.bind('<KeyRelease>', lambda event: filter_listbox(entry))
+
+    # add (x) button next to the textbox to clear the textbox
+    clear_button = tk.Button(window, text="x", command=lambda: clear_filter_textbox())
+    clear_button.pack(in_=frame, side=tk.RIGHT)
+
+
+def clear_filter_textbox():
+    text = entry.get()
+    if text == "" or text == "filter secrets":
+        return
+
+    entry.delete(0, END)
 
 
 if __name__ == '__main__':
