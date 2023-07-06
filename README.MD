@@ -1,4 +1,4 @@
-# Key Vault Explorer
+# <img src="icon.png" alt="drawing" width="25"/> Key Vault Explorer
 
 ## Overview
 
