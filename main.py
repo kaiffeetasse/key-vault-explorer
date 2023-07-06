@@ -110,8 +110,9 @@ def key_vault_select_callback(*args):
 
     set_listbox_items(secrets)
 
-    # clear the filter textbox
-    entry.delete(0, END)
+    # clear the filter textbox if it contains text
+    if entry.get() != "" and entry.get() != "filter secrets":
+        entry.delete(0, END)
 
 
 variable = tk.StringVar(window)
@@ -151,7 +152,7 @@ entry = EntryWithPlaceholder(window, "filter secrets")
 def add_filter_textbox(frame):
     global entry
     entry = EntryWithPlaceholder(window, "filter secrets")
-    entry.pack(in_=frame, side=tk.LEFT)
+    entry.pack(in_=frame, side=tk.LEFT, fill=BOTH, expand=True)
 
     # add callback
     entry.bind('<KeyRelease>', lambda event: filter_listbox(entry))
