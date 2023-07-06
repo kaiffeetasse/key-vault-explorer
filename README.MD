@@ -4,6 +4,8 @@
 
 This is a simple tool to explore the contents of an Azure Key Vault.
 
+![Screenshot](screenshot.png)
+
 ## Prerequisites
 
 Azure CLI must be installed and you must be logged in.
