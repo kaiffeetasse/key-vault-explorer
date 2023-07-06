@@ -168,6 +168,9 @@ def clear_filter_textbox():
 
     entry.delete(0, END)
 
+    # apply filter
+    filter_listbox(entry)
+
 
 if __name__ == '__main__':
     menu_bar_frame = tk.Frame(window)
