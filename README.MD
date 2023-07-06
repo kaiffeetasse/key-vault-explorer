@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a simple tool to explore the contents of an Azure Key Vault.
+A simple tool to explore the contents of an Azure Key Vault.
 
 ![Screenshot](screenshot.png)
 
