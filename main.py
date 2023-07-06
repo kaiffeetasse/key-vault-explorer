@@ -1,6 +1,8 @@
 import logging
+import os
 import tkinter as tk
-from tkinter import BOTH, RIGHT, END, LEFT
+from tkinter import BOTH, RIGHT, END, LEFT, TOP
+from tkinter import filedialog
 import pyperclip
 from PIL import Image, ImageTk
 
@@ -27,11 +29,32 @@ window.title("Key Vault Explorer")
 
 listbox = tk.Listbox(window)
 original_secrets = []
+current_key_vault_name = ""
 
 listbox_added = False
 
 
+def export_secrets():
+    # open file dialog
+    user_home = os.path.expanduser('~')
+    filename = filedialog.asksaveasfilename(initialdir=user_home, title="Select file",
+                                            initialfile=current_key_vault_name + ".csv",
+                                            filetypes=(("csv files", "*.csv"), ("all files", "*.*")))
+
+    logger.info("Exporting secrets from key vault " + current_key_vault_name + " to file " + filename)
+
+    # export secrets to file
+    with open(filename, 'w') as outfile:
+        for secret in original_secrets:
+            outfile.write(secret['name'] + "," + secret['value'].replace("\n", "") + "\n")
+
+
 def add_listbox():
+    # add button to export secrets
+    export_button = tk.Button(window, text="Export secrets", command=export_secrets)
+    export_button.pack(side=TOP, anchor='w')
+
+    # add scrollable listbox
     listbox.pack(side=LEFT, fill=BOTH, expand=True)
     scrollbar = tk.Scrollbar(window)
     scrollbar.pack(side=RIGHT, fill=BOTH)
@@ -83,6 +106,9 @@ def key_vault_select_callback(*args):
     secrets = key_vault_api.get_secrets(key_vault_name)
     global original_secrets
     original_secrets = secrets
+
+    global current_key_vault_name
+    current_key_vault_name = key_vault_name
 
     if not listbox_added:
         add_listbox()
