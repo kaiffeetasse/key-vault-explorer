@@ -64,13 +64,13 @@ def add_listbox():
 
     scrollbar.config(command=listbox.yview)
 
-    listbox.bind('<Double-Button>', listbox_double_click)
+    listbox.bind('<Double-Button>', listbox_double_click_callback)
 
     global listbox_added
     listbox_added = True
 
 
-def listbox_double_click(event):
+def listbox_double_click_callback(event):
     entry = listbox.get(listbox.curselection())
 
     logger.info("Copying secret " + entry)
@@ -118,7 +118,7 @@ def key_vault_select_callback(*args):
 variable = tk.StringVar(window)
 
 
-def add_dropdown(frame):
+def add_key_vault_dropdown(frame):
     variable.set("select key vault")
 
     variable.trace("w", key_vault_select_callback)
@@ -175,7 +175,7 @@ def clear_filter_textbox():
 
 if __name__ == '__main__':
     menu_bar_frame = tk.Frame(window)
-    add_dropdown(menu_bar_frame)
+    add_key_vault_dropdown(menu_bar_frame)
     add_filter_textbox(menu_bar_frame)
 
     menu_bar_frame.pack(side=tk.TOP, fill=BOTH)
