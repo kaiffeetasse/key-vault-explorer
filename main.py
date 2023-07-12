@@ -75,7 +75,7 @@ def listbox_double_click_callback(event):
 
     logger.info("Copying secret " + entry)
 
-    secret_value = key_vault_api.get_secret_value(entry, current_key_vault_name)
+    secret_value = key_vault_api.get_secret_value(current_key_vault_name, entry)
 
     pyperclip.copy(secret_value)
 
