@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-The configuration is stored in a `.env` file. You can copy the `.env.example` file and rename it to `.env`.
+The configuration is stored in a `.env` file. You can copy the `example.env` file and rename it to `.env`.
 
 ### Parameters
 
