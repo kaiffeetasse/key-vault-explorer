@@ -1,9 +1,13 @@
+from azure.core.exceptions import AzureError
 from azure.keyvault.secrets import SecretClient
 from azure.identity import AzureCliCredential
+from azure.mgmt.resource import ResourceManagementClient
 import os
 from dotenv import load_dotenv
 import logging
 import test
+import subprocess
+import json
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -25,7 +29,7 @@ if proxy:
 
 
 def get_secrets(key_vault_name):
-    logger.info("Getting secrets from KeyVault " + key_vault_name)
+    logger.info("Getting secrets from KeyVault: " + str(key_vault_name))
 
     if test_mode:
         return test.get_secrets()
@@ -73,36 +77,60 @@ def get_all_key_vaults():
     if test_mode:
         return test.get_all_key_vaults()
 
-    from azure.mgmt.resource import ResourceManagementClient
     credential = AzureCliCredential()
 
     # workaround to get subscription id because subscription_client.subscriptions.list() does not work
-    import subprocess
-    import json
     subscriptions = json.loads(subprocess.check_output('az account list', shell=True).decode('utf-8'))
 
-    sub_id = subscriptions[0]['id']
+    # if no subscriptions were found, throw error
+    if len(subscriptions) == 0:
+        raise Exception("No subscription found")
 
-    # from azure.mgmt.subscription import SubscriptionClient
-    # sub_client = SubscriptionClient(credential)
-    # sub_id = list(sub_client.subscriptions.list())[0].subscription_id
+    subs_with_key_vaults = []
 
-    # Obtain the management object for resources.
-    resource_client = ResourceManagementClient(credential, sub_id)
+    for sub in subscriptions:
 
-    # get all resources
-    resources = resource_client.resources.list()
+        sub_name = sub['name']
 
-    # filter resources by resource type key vault
-    key_vaults = [resource for resource in resources if resource.type == "Microsoft.KeyVault/vaults"]
+        try:
 
-    # remove all key vaults containing "prod" in name from the list
-    key_vaults = [key_vault for key_vault in key_vaults if "prod" not in key_vault.name]
+            sub_id = sub['id']
 
-    logger.info("Found " + str(len(key_vaults)) + " key vaults")
+            # obtain the management object for resources.
+            resource_client = ResourceManagementClient(credential, sub_id)
 
-    return [key_vault.name for key_vault in key_vaults]
+            # get all resources
+            resources = resource_client.resources.list()
+
+            # filter resources by resource type key vault
+            sub_key_vaults = [resource for resource in resources if resource.type == "Microsoft.KeyVault/vaults"]
+
+            # remove all key vaults containing "prod" in name from the list
+            sub_key_vaults = [key_vault for key_vault in sub_key_vaults if "prod" not in key_vault.name]
+
+            # sort by name
+            sub_key_vaults = sorted(sub_key_vaults, key=lambda x: x.name)
+
+            sub['key_vaults'] = sub_key_vaults
+            subs_with_key_vaults.append(sub)
+
+            logger.info("Found " + str(len(sub_key_vaults)) + " key vaults " + " in subscription " + sub_id)
+
+        except AzureError as ex:
+            logger.warning("Error getting key vaults for subscription " + sub_name + ": " + str(ex))
+            continue
+
+    return subs_with_key_vaults
 
 
 if __name__ == '__main__':
-    get_all_key_vaults()
+    subscriptions = get_all_key_vaults()
+
+    for sub in subscriptions:
+
+        print(sub['name'])
+
+        keyvaults = sub['key_vaults']
+
+        for kv in keyvaults:
+            print(kv.name)

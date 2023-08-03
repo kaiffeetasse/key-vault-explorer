@@ -1,7 +1,12 @@
+import copy
+import random
+
+
 def get_secrets():
     # generate random secrets
     secrets = []
-    for i in range(25):
+    secrets_count = random.randint(5, 50)
+    for i in range(secrets_count):
         secret_name = "secret" + str(i + 1)
         secret_value = "value" + str(i + 1)
 
@@ -12,15 +17,35 @@ def get_secrets():
     return secrets
 
 
+class TestKeyVault(str):
+    name: str
+
+    def __init__(self, name):
+        self.name = name
+
+
 def get_all_key_vaults():
-    # generate random key vaults
-    key_vaults = []
-    for i in range(5):
-        key_vault_name = "key_vault" + str(i)
+    # generate subscriptions
+    subscriptions = []
+    for i in range(3):
+        subscription = {
+            'id': str(i),
+            'name': "Subscription " + str(i)
+        }
 
-        key_vaults.append(key_vault_name)
+        # generate key vaults
+        subscription_key_vaults = []
+        key_vault_count = random.randint(1, 5)
 
-    return key_vaults
+        for j in range(key_vault_count):
+            key_vault = TestKeyVault("keyvault" + str(i) + str(j))
+            subscription_key_vaults.append(copy.deepcopy(key_vault))
+
+        subscription['key_vaults'] = subscription_key_vaults
+
+        subscriptions.append(subscription)
+
+    return subscriptions
 
 
 def get_secret_value():

@@ -1,11 +1,11 @@
 import logging
 import os
 import tkinter as tk
-from tkinter import BOTH, RIGHT, END, LEFT, TOP
-from tkinter import filedialog
+from tkinter import BOTH, RIGHT, END, LEFT, TOP, ttk
 import pyperclip
 from PIL import Image, ImageTk
 
+import exporter_util
 import key_vault_api
 from entry_with_placeholder import EntryWithPlaceholder
 
@@ -34,25 +34,10 @@ current_key_vault_name = ""
 listbox_added = False
 
 
-def export_secrets():
-    # open file dialog
-    user_home = os.path.expanduser('~')
-    filename = filedialog.asksaveasfilename(initialdir=user_home, title="Select file",
-                                            initialfile=current_key_vault_name + ".csv",
-                                            filetypes=(("csv files", "*.csv"), ("all files", "*.*")))
-
-    logger.info("Exporting secrets from key vault " + current_key_vault_name + " to file " + filename)
-
-    # export secrets to file
-    with open(filename, 'w') as outfile:
-        for secret in original_secrets:
-            secret_value = key_vault_api.get_secret_value(current_key_vault_name, secret)
-            outfile.write(secret + "," + secret_value.replace("\n", "") + "\n")
-
-
 def add_listbox():
     # add button to export secrets
-    export_button = tk.Button(window, text="Export secrets", command=export_secrets)
+    export_button = tk.Button(window, text="Export secrets",
+                              command=lambda: exporter_util.export_secrets(current_key_vault_name, original_secrets))
     export_button.pack(side=TOP, anchor='w')
 
     # add scrollable listbox
@@ -86,7 +71,7 @@ def set_listbox_items(items):
     for item in items:
         listbox.insert(END, item)
 
-    listbox.config(width=0)
+    # listbox.config(width=0)
 
     # make the listbox height max. 20 items
     if len(items) < 20:
@@ -95,8 +80,12 @@ def set_listbox_items(items):
         listbox.config(height=20)
 
 
+select_key_vault_label = tk.Label(window, text="Select key vault")
+
+
 def key_vault_select_callback(*args):
-    key_vault_name = variable.get()
+    global tree
+    key_vault_name = tree.item(tree.selection())['text']
 
     secrets = key_vault_api.get_secrets(key_vault_name)
     global original_secrets
@@ -106,6 +95,8 @@ def key_vault_select_callback(*args):
     current_key_vault_name = key_vault_name
 
     if not listbox_added:
+        # remove the select key vault label
+        select_key_vault_label.pack_forget()
         add_listbox()
 
     set_listbox_items(secrets)
@@ -116,18 +107,6 @@ def key_vault_select_callback(*args):
 
 
 variable = tk.StringVar(window)
-
-
-def add_key_vault_dropdown(frame):
-    variable.set("select key vault")
-
-    variable.trace("w", key_vault_select_callback)
-
-    key_vaults = key_vault_api.get_all_key_vaults()
-
-    w = tk.OptionMenu(window, variable, *key_vaults)
-
-    w.pack(in_=frame, side=tk.LEFT)
 
 
 def filter_listbox(entry):
@@ -173,18 +152,86 @@ def clear_filter_textbox():
     filter_listbox(entry)
 
 
-if __name__ == '__main__':
-    menu_bar_frame = tk.Frame(window)
-    add_key_vault_dropdown(menu_bar_frame)
-    add_filter_textbox(menu_bar_frame)
+tree = None
 
-    menu_bar_frame.pack(side=tk.TOP, fill=BOTH)
 
+def add_key_vaults_to_sidebar(side_bar_frame):
+    subscriptions = key_vault_api.get_all_key_vaults()
+    global tree
+    tree = ttk.Treeview(side_bar_frame)
+
+    for sub in subscriptions:
+
+        tree.insert('', 0, sub['name'], text=sub['name'], open=True)
+
+        key_vaults = sub['key_vaults']
+
+        for key_vault in key_vaults:
+            tree.insert(sub['name'], 0, key_vault.name, text=key_vault.name)
+
+            # add double click listener
+            tree.bind('<Double-Button>', key_vault_select_callback)
+
+    tree.pack(side=tk.TOP, fill=BOTH, expand=True)
+
+
+def save_window_size(*args):
+    with open("key-vault-exporter.conf", "w") as conf:
+        conf.write(window.geometry())
+
+
+def on_close():
+    save_window_size()
+    window.destroy()
+
+
+def init_window():
     # add cmd+f listener
     # mac
     window.bind('<Command-f>', lambda event: entry.focus_set())
 
     # windows
     window.bind('<Control-f>', lambda event: entry.focus_set())
+
+    if os.path.isfile("key-vault-exporter.conf"):
+        with open("key-vault-exporter.conf", "r") as conf:
+            window_config = conf.read()
+
+            size_x = int(window_config.split("x")[0])
+            size_y = int(window_config.split("x")[1].split("+")[0])
+
+            pos_x = int(window_config.split("+")[1])
+            pos_y = int(window_config.split("+")[2])
+
+            if pos_x < 0:
+                pos_x = 0
+
+            window_config = str(size_x) + "x" + str(size_y) + "+" + str(pos_x) + "+" + str(pos_y)
+
+            window.geometry(window_config)
+    else:
+        # default window position and size
+        window.geometry('500x500+0+0')
+
+    window.bind("<Configure>", save_window_size)
+    window.protocol("WM_DELETE_WINDOW", on_close)
+
+
+if __name__ == '__main__':
+    menu_bar_frame = tk.Frame(window)
+
+    # add_key_vault_dropdown(menu_bar_frame)
+    add_filter_textbox(menu_bar_frame)
+
+    menu_bar_frame.pack(side=tk.TOP, fill=BOTH)
+
+    side_bar_frame = tk.Frame(window)
+    add_key_vaults_to_sidebar(side_bar_frame)
+    side_bar_frame.pack(side=tk.LEFT, fill=BOTH)
+
+    # add select_key_vault_label vertically centered
+    select_key_vault_label.pack(side=tk.TOP, fill=BOTH, expand=True)
+
+    init_window()
 
     window.mainloop()
