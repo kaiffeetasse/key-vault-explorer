@@ -28,6 +28,7 @@ window.wm_iconphoto(False, photo)
 window.title("Key Vault Explorer")
 
 listbox = tk.Listbox(window)
+export_button = tk.Button(window)
 original_secrets = []
 current_key_vault_name = ""
 
@@ -36,6 +37,7 @@ listbox_added = False
 
 def add_listbox():
     # add button to export secrets
+    global export_button
     export_button = tk.Button(window, text="Export secrets",
                               command=lambda: exporter_util.export_secrets(current_key_vault_name, original_secrets))
     export_button.pack(side=TOP, anchor='w')
@@ -84,26 +86,47 @@ select_key_vault_label = tk.Label(window, text="Select key vault")
 
 
 def key_vault_select_callback(*args):
-    global tree
-    key_vault_name = tree.item(tree.selection())['text']
+    key_vault_name = ""
+    global listbox_added
 
-    secrets = key_vault_api.get_secrets(key_vault_name)
-    global original_secrets
-    original_secrets = secrets
+    try:
 
-    global current_key_vault_name
-    current_key_vault_name = key_vault_name
+        global tree
+        key_vault_name = tree.item(tree.selection())['text']
 
-    if not listbox_added:
-        # remove the select key vault label
-        select_key_vault_label.pack_forget()
-        add_listbox()
+        secrets = key_vault_api.get_secrets(key_vault_name)
+        global original_secrets
+        original_secrets = secrets
 
-    set_listbox_items(secrets)
+        global current_key_vault_name
+        current_key_vault_name = key_vault_name
 
-    # clear the filter textbox if it contains text
-    if entry.get() != "" and entry.get() != "filter secrets":
-        entry.delete(0, END)
+        if not listbox_added:
+            # remove the select key vault label
+            select_key_vault_label.pack_forget()
+            add_listbox()
+
+        set_listbox_items(secrets)
+
+        # clear the filter textbox if it contains text
+        if entry.get() != "" and entry.get() != "filter secrets":
+            entry.delete(0, END)
+
+    except Exception as e:
+        logger.error("Could not load key vault secrets for vault " + str(key_vault_name))
+
+        # set label text to error message
+        select_key_vault_label.config(text="Could not load key vault secrets for vault " + str(key_vault_name)
+                                           + " (" + str(e) + ")")
+
+        # remove the listbox and export button
+        listbox.pack_forget()
+        global export_button
+        export_button.pack_forget()
+        listbox_added = False
+
+        # show the label centered
+        select_key_vault_label.pack(side=tk.TOP, fill=BOTH, expand=True)
 
 
 variable = tk.StringVar(window)
@@ -157,6 +180,12 @@ tree = None
 
 def add_key_vaults_to_sidebar(side_bar_frame):
     subscriptions = key_vault_api.get_all_key_vaults()
+
+    if len(subscriptions) == 0:
+        select_key_vault_label.config(text="No key vaults found")
+        select_key_vault_label.pack(side=tk.TOP, fill=BOTH, expand=True)
+        return
+
     global tree
     tree = ttk.Treeview(side_bar_frame)
 
