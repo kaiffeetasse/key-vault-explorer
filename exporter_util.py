@@ -20,6 +20,10 @@ def export_secrets(key_vault_name, secrets):
                                             initialfile=key_vault_name + ".csv",
                                             filetypes=(("csv files", "*.csv"), ("all files", "*.*")))
 
+    if not filename or filename == "":
+        logger.info("Export cancelled")
+        return
+
     logger.info("Exporting secrets from key vault " + key_vault_name + " to file " + filename)
 
     # export secrets to file
